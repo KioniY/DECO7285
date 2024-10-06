@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Timer with Image and GIF</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Lobster&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            transition: 0.7s;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            background-image: url('background.jpg');
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            position: relative;
+            width: 100vw;
+            height: 100vh;
+            max-width: 480px;
+            max-height: 100vh;
+            margin: auto;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+        }
+
+        .overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background-color: rgba(255, 255, 255, 0.6);
+            z-index: 1;
+        }
+
+        .content {
+            position: relative;
+            z-index: 2;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            width: 100%;
+            height: 100%;
+            padding-top: 120px;
+            max-width: 480px;
+            max-height: 100vh;
+        }
+
+        .container {
+            text-align: center;
+            width: 100%;
+            max-width: 360px;
+            background-color: rgba(255, 255, 255, 0.8);
+            padding: 25px;
+            border-radius: 15px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+            backdrop-filter: blur(10px);
+        }
+
+        h1 {
+            font-size: 10vw;
+            padding: 20px 0;
+            background: linear-gradient(to right, #00c6ff, #0072ff);
+            -webkit-background-clip: text;
+            color: transparent;
+            font-weight: bold;
+            text-align: center;
+            font-family: 'Lobster', cursive;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            z-index: 5;
+            background-color: white;
+            padding: 20px;
+        }
+
+        .input-time {
+            display: flex;
+            justify-content: space-between;
+            gap: 10px;
+        }
+
+        input[type="number"] {
+            width: 30%;
+            padding: 15px;
+            font-size: 16px;
+            border: 2px solid #ccc;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.1);
+            outline: none;
+        }
+
+        .main-button {
+            margin-top: 20px;
+            width: 120px;
+            height: 50px;
+            background: linear-gradient(135deg, #f093fb, #f5576c);
+            border-radius: 25px;
+            border: none;
+            font-size: 18px;
+            color: white;
+            font-weight: bold;
+            cursor: pointer;
+            box-shadow: 3px 3px 10px rgba(0, 0, 0, 0.3);
+        }
+
+        .error {
+            color: red;
+            font-size: 16px;
+            margin-bottom: 15px;
+            display: none;
+            font-weight: bold;
+        }
+
+        img {
+            display: none;
+            width: 100%;
+            margin-top: 20px;
+            border-radius: 10px;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        #countdown {
+            font-size: 24px;
+            font-weight: bold;
+            margin-bottom: 10px;
+            color: #333;
+            font-family: 'Lobster', cursive;
+            background: linear-gradient(to right, #00c6ff, #0072ff);
+            -webkit-background-clip: text;
+            color: transparent;
+            text-align: center;
+        }
+
+        #video-container {
+            display: none;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            text-align: center;
+            height: 100%;
+            width: 100%;
+        }
+
+        @media (max-width: 480px) {
+            h1 {
+                font-size: 12vw;
+            }
+
+            #countdown {
+                font-size: 10vw;
+            }
+
+            .container {
+                padding: 15px;
+            }
+
+            .main-button {
+                width: 100px;
+                height: 45px;
+                font-size: 16px;
+            }
+
+            input[type="number"] {
+                font-size: 14px;
+            }
+        }
+
+    </style>
+</head>
+<body>
+
+<div class="overlay"></div>
+
+<h1>Set Timer for your Work</h1>
+
+<div class="content">
+    <div class="container">
+        <div class="input-time">
+            <input type="number" id="hours" placeholder="HH" min="0" max="3">
+            <input type="number" id="minutes" placeholder="MM" min="0" max="59">
+            <input type="number" id="seconds" placeholder="SS" min="0" max="59">
+        </div>
+        <div class="error" id="error">Time cannot exceed 3 hours!</div>
+        <button class="main-button" id="setButton">Set</button>
+    </div>
+
+    <div id="video-container">
+        <div id="countdown">Time left: <span id="timeLeft">00:00:00</span></div>
+        <img id="image1" src="1.jpg" alt="Image 1">
+        <img id="gifImage" src="2.gif" alt="GIF" style="display:none">
+    </div>
+</div>
+
+<script>
+    function formatTime(time) {
+        return time < 10 ? '0' + time : time;
+    }
+
+    document.getElementById('setButton').addEventListener('click', function () {
+        const hours = parseInt(document.getElementById('hours').value) || 0;
+        const minutes = parseInt(document.getElementById('minutes').value) || 0;
+        const seconds = parseInt(document.getElementById('seconds').value) || 0;
+
+        const totalTimeInSeconds = (hours * 3600) + (minutes * 60) + seconds;
+        const maxTime = 3 * 3600; //no more than 3 hrs
+
+        const error = document.getElementById('error');
+        const countdown = document.getElementById('countdown');
+        const timeLeftDisplay = document.getElementById('timeLeft');
+        const image1 = document.getElementById('image1');
+        const gifImage = document.getElementById('gifImage');
+        const videoContainer = document.getElementById('video-container');
+        const container = document.querySelector('.container');
+
+        if (totalTimeInSeconds > maxTime) {
+            error.style.display = 'block';
+
+            // clear input bar
+            document.getElementById('hours').value = '';
+            document.getElementById('minutes').value = '';
+            document.getElementById('seconds').value = '';
+        } else if (totalTimeInSeconds > 0) {
+            error.style.display = 'none';
+            container.classList.add('hidden');
+            videoContainer.style.display = 'flex';
+            image1.style.display = 'block';
+
+            let timeLeft = totalTimeInSeconds;
+
+            function updateCountdown() {
+                const displayHours = Math.floor(timeLeft / 3600);
+                const displayMinutes = Math.floor((timeLeft % 3600) / 60);
+                const displaySeconds = timeLeft % 60;
+                timeLeftDisplay.textContent = `${formatTime(displayHours)}:${formatTime(displayMinutes)}:${formatTime(displaySeconds)}`;
+            }
+
+            updateCountdown();
+
+            const countdownInterval = setInterval(function () {
+                timeLeft--;
+                updateCountdown();
+
+                if (timeLeft <= 0) {
+                    clearInterval(countdownInterval);
+                    image1.style.display = 'none';
+                    gifImage.style.display = 'block';
+                }
+            }, 1000);
+        } else {
+            alert('Please enter a valid time.');
+        }
+    });
+</script>
+
+</body>
+</html>
